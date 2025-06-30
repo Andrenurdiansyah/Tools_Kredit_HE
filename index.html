@@ -1,77 +1,114 @@
 <!DOCTYPE html>
-<html lang="id">
+<html lang="en">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Simulasi Kredit HE</title>
+  <title>Loan Calculator</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
-<body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center p-4">
+<body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
   <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-full sm:max-w-xl md:max-w-2xl">
-    <h1 class="text-2xl font-bold mb-4 text-center text-indigo-600">Simulasi Kredit Heavy Equipment</h1>
+    <h1 class="text-2xl font-bold mb-4 text-center text-indigo-600">Loan Simulation</h1>
 
-    <form id="simulasiForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <input type="number" name="otr" placeholder="Harga OTR" class="p-2 border rounded" required>
-      <input type="number" name="dp" placeholder="Uang Muka (DP)" class="p-2 border rounded" required>
-      <input type="number" name="asuransi_depan" placeholder="Asuransi Bayar di Depan" class="p-2 border rounded">
-      <input type="number" name="asuransi_pokok" placeholder="Asuransi Masuk Pokok" class="p-2 border rounded">
+    <form id="loanForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <input type="text" name="otr" placeholder="OTR Price" class="p-2 border rounded format-number" required>
+      <input type="text" name="dp" placeholder="Down Payment (DP)" class="p-2 border rounded format-number" required>
+      <input type="text" name="asuransi_depan" placeholder="Insurance Paid Upfront" class="p-2 border rounded format-number">
+      <input type="text" name="asuransi_pokok" placeholder="Insurance in Loan" class="p-2 border rounded format-number">
+
       <select name="tenor" class="p-2 border rounded" required>
-        <option value="">Pilih Tenor</option>
-        <option value="12">12 bulan</option>
-        <option value="24">24 bulan</option>
-        <option value="36">36 bulan</option>
+        <option value="">Select Tenor</option>
+        <option value="12">12 months</option>
+        <option value="24">24 months</option>
+        <option value="36">36 months</option>
       </select>
-      <input type="number" step="0.01" name="bunga" placeholder="Bunga (%) per tahun" class="p-2 border rounded" required>
+
+      <input type="number" step="0.01" name="bunga" placeholder="Interest Rate (%) per year" class="p-2 border rounded" required>
+
       <select name="wof" class="p-2 border rounded" required>
-        <option value="">Pilih Jenis Pembayaran</option>
-        <option value="ADDM">ADDM (di awal)</option>
-        <option value="ADDB">ADDB (di akhir)</option>
+        <option value="">Select Payment Type</option>
+        <option value="ADDM">ADDM (pay first)</option>
+        <option value="ADDB">ADDB (pay later)</option>
       </select>
+
       <div class="sm:col-span-2">
         <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700">
-          Hitung
+          Calculate
         </button>
       </div>
     </form>
 
-    <div id="hasil" class="mt-6 bg-gray-50 p-4 rounded hidden">
-      <h2 class="text-lg font-semibold mb-2">Hasil Simulasi</h2>
+    <div id="result" class="mt-6 bg-gray-50 p-4 rounded hidden">
+      <h2 class="text-lg font-semibold mb-2">Calculation Result</h2>
       <div id="output" class="space-y-1 text-sm text-gray-700"></div>
     </div>
   </div>
 
   <script>
-    document.getElementById('simulasiForm').addEventListener('submit', async function(e) {
+    // Format number with comma as thousand separator
+    document.querySelectorAll('.format-number').forEach((input) => {
+      input.addEventListener('input', function (e) {
+        const cursorPos = this.selectionStart;
+        const originalLength = this.value.length;
+        let val = this.value.replace(/[^0-9]/g, '');
+
+        if (val) {
+          val = parseInt(val, 10).toLocaleString('en-US');
+        }
+
+        this.value = val;
+
+        const updatedLength = this.value.length;
+        this.setSelectionRange(cursorPos + (updatedLength - originalLength), cursorPos + (updatedLength - originalLength));
+      });
+    });
+
+    document.getElementById('loanForm').addEventListener('submit', async function(e) {
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true;
-      btn.innerText = 'Menghitung...';
+      btn.innerText = 'Calculating...';
 
       const form = new FormData(this);
-      const response = await fetch('https://YOUR_N8N_URL/webhook/simulasi-kredit', {
-        method: 'POST',
-        body: form
+
+      // Convert formatted input to raw numbers
+      ['otr', 'dp', 'asuransi_depan', 'asuransi_pokok'].forEach(field => {
+        const el = document.querySelector(`[name="${field}"]`);
+        if (el) {
+          el.value = el.value.replace(/,/g, '');
+          form.set(field, el.value);
+        }
       });
 
-      btn.disabled = false;
-      btn.innerText = 'Hitung';
+      try {
+        const response = await fetch('https://your-n8n-server.com/webhook/simulasi-kredit', {
+          method: 'POST',
+          body: form
+        });
 
-      if (!response.ok) {
-        alert('Terjadi kesalahan: ' + response.status);
-        return;
+        btn.disabled = false;
+        btn.innerText = 'Calculate';
+
+        if (!response.ok) {
+          alert('Error: ' + response.status);
+          return;
+        }
+
+        const data = await response.json();
+        document.getElementById('result').classList.remove('hidden');
+        document.getElementById('output').innerHTML = `
+          <p><strong>Loan Principal:</strong> $${Number(data.pokok_hutang).toLocaleString()}</p>
+          <p><strong>Monthly Installment:</strong> $${Number(data.angsuran_per_bulan).toLocaleString()}</p>
+          <p><strong>First Installment:</strong> $${Number(data.angsuran_pertama).toLocaleString()}</p>
+          <p><strong>Insurance Paid Upfront:</strong> $${Number(data.asuransi_dibayar_depan).toLocaleString()}</p>
+          <p><strong>Payment Type:</strong> ${data.wof}</p>
+          <p><strong>Total Initial Payment:</strong> $${Number(data.total_bayar_di_depan).toLocaleString()}</p>
+        `;
+      } catch (err) {
+        btn.disabled = false;
+        btn.innerText = 'Calculate';
+        alert('Failed to connect to server');
       }
-
-      const data = await response.json();
-
-      document.getElementById('hasil').classList.remove('hidden');
-      document.getElementById('output').innerHTML = `
-        <p><strong>Pokok Hutang:</strong> Rp ${data.pokok_hutang.toLocaleString()}</p>
-        <p><strong>Angsuran per Bulan:</strong> Rp ${data.angsuran_per_bulan.toLocaleString()}</p>
-        <p><strong>Angsuran Pertama:</strong> Rp ${data.angsuran_pertama.toLocaleString()}</p>
-        <p><strong>Asuransi di Depan:</strong> Rp ${data.asuransi_dibayar_depan.toLocaleString()}</p>
-        <p><strong>Tipe Pembayaran:</strong> ${data.wof}</p>
-        <p><strong>Total Bayar di Depan:</strong> Rp ${data.total_bayar_di_depan.toLocaleString()}</p>
-      `;
     });
   </script>
 </body>
