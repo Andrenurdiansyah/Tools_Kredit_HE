@@ -111,5 +111,15 @@
       }
     });
   </script>
+  <script>
+  const latestVersion = '1.0.4'; // ← ubah setiap kali update
+
+  // Jika URL belum ada ?v=xxx, redirect ke versi terbaru
+  const currentUrl = new URL(window.location.href);
+  if (!currentUrl.searchParams.has('v')) {
+    currentUrl.searchParams.set('v', latestVersion);
+    window.location.replace(currentUrl.toString());
+  }
+  </script>
 </body>
 </html>
