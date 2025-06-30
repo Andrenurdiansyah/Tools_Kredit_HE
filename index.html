@@ -1,9 +1,17 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Loan Calculator</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Loan Simulation</title>
+  <script>
+    const latestVersion = '1.0.4';
+    const url = new URL(window.location.href);
+    if (!url.searchParams.has('v')) {
+      url.searchParams.set('v', latestVersion);
+      window.location.replace(url.toString());
+    }
+  </script>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 min-h-screen flex items-center justify-center p-4">
@@ -11,30 +19,24 @@
     <h1 class="text-2xl font-bold mb-4 text-center text-indigo-600">Loan Simulation</h1>
 
     <form id="loanForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <input type="text" name="otr" placeholder="OTR Price" class="p-2 border rounded format-number" required>
-      <input type="text" name="dp" placeholder="Down Payment (DP)" class="p-2 border rounded format-number" required>
-      <input type="text" name="asuransi_depan" placeholder="Insurance Paid Upfront" class="p-2 border rounded format-number">
-      <input type="text" name="asuransi_pokok" placeholder="Insurance in Loan" class="p-2 border rounded format-number">
-
+      <input type="text" name="otr" placeholder="OTR Price" class="p-2 border rounded format-number" required />
+      <input type="text" name="dp" placeholder="Down Payment (DP)" class="p-2 border rounded format-number" required />
+      <input type="text" name="asuransi_depan" placeholder="Insurance Paid Upfront" class="p-2 border rounded format-number" />
+      <input type="text" name="asuransi_pokok" placeholder="Insurance in Loan" class="p-2 border rounded format-number" />
       <select name="tenor" class="p-2 border rounded" required>
         <option value="">Select Tenor</option>
         <option value="12">12 months</option>
         <option value="24">24 months</option>
         <option value="36">36 months</option>
       </select>
-
-      <input type="number" step="0.01" name="bunga" placeholder="Interest Rate (%) per year" class="p-2 border rounded" required>
-
+      <input type="number" step="0.01" name="bunga" placeholder="Interest Rate (%) per year" class="p-2 border rounded" required />
       <select name="wof" class="p-2 border rounded" required>
         <option value="">Select Payment Type</option>
         <option value="ADDM">ADDM (pay first)</option>
         <option value="ADDB">ADDB (pay later)</option>
       </select>
-
       <div class="sm:col-span-2">
-        <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700">
-          Calculate
-        </button>
+        <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700">Calculate</button>
       </div>
     </form>
 
@@ -42,37 +44,34 @@
       <h2 class="text-lg font-semibold mb-2">Calculation Result</h2>
       <div id="output" class="space-y-1 text-sm text-gray-700"></div>
     </div>
+
+    <div class="text-center text-xs text-gray-400 mt-6">Version 1.0.4</div>
   </div>
 
   <script>
-    // Format number with comma as thousand separator
+    // Format input numbers with commas (en-US style)
     document.querySelectorAll('.format-number').forEach((input) => {
-      input.addEventListener('input', function (e) {
+      input.addEventListener('input', function () {
         const cursorPos = this.selectionStart;
         const originalLength = this.value.length;
         let val = this.value.replace(/[^0-9]/g, '');
-
         if (val) {
           val = parseInt(val, 10).toLocaleString('en-US');
         }
-
         this.value = val;
-
         const updatedLength = this.value.length;
         this.setSelectionRange(cursorPos + (updatedLength - originalLength), cursorPos + (updatedLength - originalLength));
       });
     });
 
-    document.getElementById('loanForm').addEventListener('submit', async function(e) {
+    document.getElementById('loanForm').addEventListener('submit', async function (e) {
       e.preventDefault();
       const btn = e.target.querySelector('button[type="submit"]');
       btn.disabled = true;
       btn.innerText = 'Calculating...';
 
       const form = new FormData(this);
-
-      // Convert formatted input to raw numbers
-      ['otr', 'dp', 'asuransi_depan', 'asuransi_pokok'].forEach(field => {
+      ['otr', 'dp', 'asuransi_depan', 'asuransi_pokok'].forEach((field) => {
         const el = document.querySelector(`[name="${field}"]`);
         if (el) {
           el.value = el.value.replace(/,/g, '');
@@ -83,7 +82,7 @@
       try {
         const response = await fetch('https://your-n8n-server.com/webhook/simulasi-kredit', {
           method: 'POST',
-          body: form
+          body: form,
         });
 
         btn.disabled = false;
@@ -100,7 +99,7 @@
           <p><strong>Loan Principal:</strong> $${Number(data.pokok_hutang).toLocaleString()}</p>
           <p><strong>Monthly Installment:</strong> $${Number(data.angsuran_per_bulan).toLocaleString()}</p>
           <p><strong>First Installment:</strong> $${Number(data.angsuran_pertama).toLocaleString()}</p>
-          <p><strong>Insurance Paid Upfront:</strong> $${Number(data.asuransi_dibayar_depan).toLocaleString()}</p>
+          <p><strong>Upfront Insurance:</strong> $${Number(data.asuransi_dibayar_depan).toLocaleString()}</p>
           <p><strong>Payment Type:</strong> ${data.wof}</p>
           <p><strong>Total Initial Payment:</strong> $${Number(data.total_bayar_di_depan).toLocaleString()}</p>
         `;
@@ -110,16 +109,6 @@
         alert('Failed to connect to server');
       }
     });
-  </script>
-  <script>
-  const latestVersion = '1.0.4'; // ← ubah setiap kali update
-
-  // Jika URL belum ada ?v=xxx, redirect ke versi terbaru
-  const currentUrl = new URL(window.location.href);
-  if (!currentUrl.searchParams.has('v')) {
-    currentUrl.searchParams.set('v', latestVersion);
-    window.location.replace(currentUrl.toString());
-  }
   </script>
 </body>
 </html>
