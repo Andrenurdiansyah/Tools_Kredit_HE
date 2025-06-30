@@ -2,36 +2,34 @@
 <html lang="id">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>Simulasi Kredit HE</title>
   <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body class="bg-gray-100 text-gray-800 min-h-screen flex items-center justify-center p-4">
-
-  <div class="bg-white p-6 rounded-2xl shadow-xl max-w-md w-full">
+  <div class="bg-white p-6 rounded-2xl shadow-xl w-full max-w-full sm:max-w-xl md:max-w-2xl">
     <h1 class="text-2xl font-bold mb-4 text-center text-indigo-600">Simulasi Kredit Heavy Equipment</h1>
 
-    <form id="simulasiForm" class="space-y-4">
-      <input type="number" name="otr" placeholder="Harga OTR" class="w-full p-2 border rounded" required>
-      <input type="number" name="dp" placeholder="Uang Muka (DP)" class="w-full p-2 border rounded" required>
-      <input type="number" name="asuransi_depan" placeholder="Asuransi Bayar di Depan" class="w-full p-2 border rounded">
-      <input type="number" name="asuransi_pokok" placeholder="Asuransi Masuk Pokok" class="w-full p-2 border rounded">
-      
-      <select name="tenor" class="w-full p-2 border rounded" required>
+    <form id="simulasiForm" class="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <input type="number" name="otr" placeholder="Harga OTR" class="p-2 border rounded" required>
+      <input type="number" name="dp" placeholder="Uang Muka (DP)" class="p-2 border rounded" required>
+      <input type="number" name="asuransi_depan" placeholder="Asuransi Bayar di Depan" class="p-2 border rounded">
+      <input type="number" name="asuransi_pokok" placeholder="Asuransi Masuk Pokok" class="p-2 border rounded">
+      <select name="tenor" class="p-2 border rounded" required>
         <option value="">Pilih Tenor</option>
         <option value="12">12 bulan</option>
         <option value="24">24 bulan</option>
         <option value="36">36 bulan</option>
       </select>
-      
-      <input type="number" step="0.01" name="bunga" placeholder="Bunga (%) per tahun" class="w-full p-2 border rounded" required>
-      
-      <select name="wof" class="w-full p-2 border rounded" required>
+      <input type="number" step="0.01" name="bunga" placeholder="Bunga (%) per tahun" class="p-2 border rounded" required>
+      <select name="wof" class="p-2 border rounded" required>
         <option value="">Pilih Jenis Pembayaran</option>
-        <option value="ADDM">ADDM (Bayar di awal)</option>
-        <option value="ADDB">ADDB (Bayar di akhir)</option>
+        <option value="ADDM">ADDM (di awal)</option>
+        <option value="ADDB">ADDB (di akhir)</option>
       </select>
-      
-      <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700">Hitung</button>
+      <div class="sm:col-span-2">
+        <button type="submit" class="bg-indigo-600 text-white w-full py-2 rounded hover:bg-indigo-700">Hitung</button>
+      </div>
     </form>
 
     <div id="hasil" class="mt-6 bg-gray-50 p-4 rounded hidden">
@@ -55,12 +53,11 @@
         <p><strong>Pokok Hutang:</strong> Rp ${data.pokok_hutang.toLocaleString()}</p>
         <p><strong>Angsuran per Bulan:</strong> Rp ${data.angsuran_per_bulan.toLocaleString()}</p>
         <p><strong>Angsuran Pertama:</strong> Rp ${data.angsuran_pertama.toLocaleString()}</p>
-        <p><strong>Asuransi Bayar di Depan:</strong> Rp ${data.asuransi_dibayar_depan.toLocaleString()}</p>
+        <p><strong>Asuransi di Depan:</strong> Rp ${data.asuransi_dibayar_depan.toLocaleString()}</p>
         <p><strong>Tipe Pembayaran:</strong> ${data.wof}</p>
         <p><strong>Total Bayar di Depan:</strong> Rp ${data.total_bayar_di_depan.toLocaleString()}</p>
       `;
     });
   </script>
-
 </body>
 </html>
